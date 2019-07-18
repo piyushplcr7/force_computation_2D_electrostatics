@@ -10,4 +10,5 @@ ExternalProject_Add(Code
 )
 
 add_subdirectory(examples)
+add_subdirectory(external/Code)
 
