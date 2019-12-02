@@ -1,1 +1,0 @@
-cmd='/usr/bin/cmake;-GUnix Makefiles;/home/piyush/ETH/thesis/FCSC/build/parametricbem2d/src/Code'

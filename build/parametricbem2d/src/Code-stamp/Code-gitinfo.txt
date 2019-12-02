@@ -1,3 +1,0 @@
-repository='https://gitlab.math.ethz.ch/AdvNumCSE/Code.git'
-module=''
-tag=''
