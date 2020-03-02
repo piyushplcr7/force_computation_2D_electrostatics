@@ -250,15 +250,6 @@ Hilbert_SOURCE_DIR:STATIC=/home/ppanchal/ETH/thesis/FCSC/external/Code/BEM/CppHi
 //Path to a program.
 PYTHON_EXECUTABLE:FILEPATH=/usr/bin/python
 
-//Path to a file.
-PYTHON_INCLUDE_DIR:PATH=/usr/include/python2.7
-
-//Path to a library.
-PYTHON_LIBRARY:FILEPATH=/usr/lib/x86_64-linux-gnu/libpython2.7.so
-
-//Path to a library.
-PYTHON_LIBRARY_DEBUG:FILEPATH=PYTHON_LIBRARY_DEBUG-NOTFOUND
-
 //Dependencies for target
 adj_double_layer_LIB_DEPENDS:STATIC=
 
@@ -497,18 +488,10 @@ EIGEN3_INCLUDE_DIR-ADVANCED:INTERNAL=1
 FIND_PACKAGE_MESSAGE_DETAILS_Eigen3:INTERNAL=[/usr/include/eigen3][TRUE][v(2.91.0)]
 //Details about finding PythonInterp
 FIND_PACKAGE_MESSAGE_DETAILS_PythonInterp:INTERNAL=[/usr/bin/python][v2.7.15()]
-//Details about finding PythonLibs
-FIND_PACKAGE_MESSAGE_DETAILS_PythonLibs:INTERNAL=[/usr/lib/x86_64-linux-gnu/libpython2.7.so][/usr/include/python2.7][v2.7.15+(2.7)]
 //Details about finding Threads
 FIND_PACKAGE_MESSAGE_DETAILS_Threads:INTERNAL=[TRUE][v()]
 //ADVANCED property for variable: PYTHON_EXECUTABLE
 PYTHON_EXECUTABLE-ADVANCED:INTERNAL=1
-//ADVANCED property for variable: PYTHON_INCLUDE_DIR
-PYTHON_INCLUDE_DIR-ADVANCED:INTERNAL=1
-//ADVANCED property for variable: PYTHON_LIBRARY
-PYTHON_LIBRARY-ADVANCED:INTERNAL=1
-//ADVANCED property for variable: PYTHON_LIBRARY_DEBUG
-PYTHON_LIBRARY_DEBUG-ADVANCED:INTERNAL=1
 //Result of TRY_COMPILE
 THREADS_HAVE_PTHREAD_ARG:INTERNAL=TRUE
 //Components requested for this build tree.

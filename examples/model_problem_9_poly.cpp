@@ -16,13 +16,16 @@
 // d2 v/dx1 dx1              d2 v/ dx1 dx2
 // d2 v/ dx1 dx2             d2 v/ dx2 dx2
 
+/*
+ * Class representing the velocity field nu(x,y,m,n) = [x^m * y^n, 0]
+ */
 template <int m, int n> class NU_XYMN_1 {
 public:
   Eigen::Vector2d operator()(const Eigen::Vector2d &X) const {
     double x = X(0);
     double y = X(1);
     Eigen::Vector2d out;
-    return Eigen::Vector2d(std::pow(x,m)*std::pow(y,n), 0);
+    return Eigen::Vector2d(std::pow(x, m) * std::pow(y, n), 0);
   }
 
   Eigen::MatrixXd grad(const Eigen::Vector2d &X) const {
@@ -30,16 +33,16 @@ public:
     double y = X(1);
     Eigen::MatrixXd M(2, 2);
     double powxm1, powym1;
-    if (m==0)
+    if (m == 0)
       powxm1 = 0;
     else
-      powxm1 = m * std::pow(x,m-1);
+      powxm1 = m * std::pow(x, m - 1);
 
-    if (n==0)
+    if (n == 0)
       powym1 = 0;
     else
-      powym1 = n * std::pow(y,n-1);
-    M << powxm1*std::pow(y,n), 0, std::pow(x,m)*powym1, 0;
+      powym1 = n * std::pow(y, n - 1);
+    M << powxm1 * std::pow(y, n), 0, std::pow(x, m) * powym1, 0;
 
     return M;
   }
@@ -47,32 +50,32 @@ public:
   double div(const Eigen::Vector2d &X) const {
     double x = X(0);
     double y = X(1);
-    if (m==0)
+    if (m == 0)
       return 0;
     else
-      return m*std::pow(x,m-1)*std::pow(y,n);
+      return m * std::pow(x, m - 1) * std::pow(y, n);
   }
 
   Eigen::MatrixXd dgrad1(const Eigen::Vector2d &X) const {
     double x = X(0);
     double y = X(1);
     Eigen::MatrixXd M(2, 2);
-    double M11,M12,M22;
+    double M11, M12, M22;
 
-    if (m==0 or m==1)
+    if (m == 0 or m == 1)
       M11 = 0;
     else
-      M11 = m*(m-1)*std::pow(x,m-2)*std::pow(y,n);
+      M11 = m * (m - 1) * std::pow(x, m - 2) * std::pow(y, n);
 
-    if (m==0 or n==0)
+    if (m == 0 or n == 0)
       M12 = 0;
     else
-      M12 = m*n*std::pow(x,m-1)*std::pow(y,n-1);
+      M12 = m * n * std::pow(x, m - 1) * std::pow(y, n - 1);
 
-    if (n==0 or n==1)
+    if (n == 0 or n == 1)
       M22 = 0;
     else
-      M22 = n*(n-1)*std::pow(x,m)*std::pow(y,n-2);
+      M22 = n * (n - 1) * std::pow(x, m) * std::pow(y, n - 2);
 
     M << M11, M12, M12, M22;
     return M;
@@ -86,13 +89,16 @@ public:
   }
 };
 
+/*
+ * Class representing the velocity field nu(x,y,m,n) = [0, x^m * y^n]
+ */
 template <int m, int n> class NU_XYMN_2 {
 public:
   Eigen::Vector2d operator()(const Eigen::Vector2d &X) const {
     double x = X(0);
     double y = X(1);
     Eigen::Vector2d out;
-    return Eigen::Vector2d(0, std::pow(x,m)*std::pow(y,n));
+    return Eigen::Vector2d(0, std::pow(x, m) * std::pow(y, n));
   }
 
   Eigen::MatrixXd grad(const Eigen::Vector2d &X) const {
@@ -100,26 +106,26 @@ public:
     double y = X(1);
     Eigen::MatrixXd M(2, 2);
     double powxm1, powym1;
-    if (m==0)
+    if (m == 0)
       powxm1 = 0;
     else
-      powxm1 = m * std::pow(x,m-1);
+      powxm1 = m * std::pow(x, m - 1);
 
-    if (n==0)
+    if (n == 0)
       powym1 = 0;
     else
-      powym1 = n * std::pow(y,n-1);
-    M << 0, powxm1*std::pow(y,n), 0, std::pow(x,m)*powym1;
+      powym1 = n * std::pow(y, n - 1);
+    M << 0, powxm1 * std::pow(y, n), 0, std::pow(x, m) * powym1;
     return M;
   }
 
   double div(const Eigen::Vector2d &X) const {
     double x = X(0);
     double y = X(1);
-    if (n==0)
+    if (n == 0)
       return 0;
     else
-      return n *std::pow(x,m)*std::pow(y,n-1);
+      return n * std::pow(x, m) * std::pow(y, n - 1);
   }
 
   Eigen::MatrixXd dgrad1(const Eigen::Vector2d &X) const {
@@ -133,28 +139,32 @@ public:
     double x = X(0);
     double y = X(1);
     Eigen::MatrixXd M(2, 2);
-    double M11,M12,M22;
+    double M11, M12, M22;
 
-    if (m==0 or m==1)
+    if (m == 0 or m == 1)
       M11 = 0;
     else
-      M11 = m*(m-1)*std::pow(x,m-2)*std::pow(y,n);
+      M11 = m * (m - 1) * std::pow(x, m - 2) * std::pow(y, n);
 
-    if (m==0 or n==0)
+    if (m == 0 or n == 0)
       M12 = 0;
     else
-      M12 = m*n*std::pow(x,m-1)*std::pow(y,n-1);
+      M12 = m * n * std::pow(x, m - 1) * std::pow(y, n - 1);
 
-    if (n==0 or n==1)
+    if (n == 0 or n == 1)
       M22 = 0;
     else
-      M22 = n*(n-1)*std::pow(x,m)*std::pow(y,n-2);
+      M22 = n * (n - 1) * std::pow(x, m) * std::pow(y, n - 2);
 
     M << M11, M12, M12, M22;
     return M;
   }
 };
 
+/*
+ * Class representing the logarithmic boundary conditions and also the true
+ * solution for the potential u.
+ */
 class G {
 public:
   double operator()(const Eigen::Vector2d &X) const {
@@ -171,30 +181,37 @@ public:
 };
 
 int main() {
+  // Boundary condition
   G g;
+  // True solution
+  G u;
 
+  // Initializing the variables m,n (used in the velocity fields) using
+  // environment variables MM, NN
   unsigned m = MM;
   unsigned n = NN;
 
-  #if VEL == 1
+// Velocity field in x direction
+#if VEL == 1
   std::string filename("mp9polyxymn1_");
-  filename += to_string(m)+"_"+to_string(n);
+  filename += to_string(m) + "_" + to_string(n);
 
   std::ofstream out(filename);
   std::cout << "KNK, nu_xymn_1" << std::endl;
   out << "#KNK, nu_xymn_1" << std::endl;
-  NU_XYMN_1<MM,NN> nu;
-  #endif
+  NU_XYMN_1<MM, NN> nu;
+#endif
 
-  #if VEL == 2
+// Velocity field in y direction
+#if VEL == 2
   std::string filename("mp9polyxymn2_");
-  filename += to_string(m)+"_"+to_string(n);
+  filename += to_string(m) + "_" + to_string(n);
 
   std::ofstream out(filename);
   std::cout << "KNK, nu_xymn_2" << std::endl;
   out << "#KNK, nu_xymn_2" << std::endl;
-  NU_XYMN_2<MM,NN> nu;
-  #endif
+  NU_XYMN_2<MM, NN> nu;
+#endif
 
   std::cout << "#MM NN: " << MM << " " << NN << std::endl;
   out << "#MM NN: " << MM << " " << NN << std::endl;
@@ -202,7 +219,7 @@ int main() {
   std::cout << "#g logr" << std::endl;
   out << "#g logr" << std::endl;
 
-  // Kite and Kite
+  // Definition of the domain
   std::cout << "#kite and kite" << std::endl;
   Eigen::MatrixXd cos_list_o(2, 2);
   cos_list_o << 3.5, 1.625, 0, 0;
@@ -217,6 +234,7 @@ int main() {
   parametricbem2d::ParametrizedFourierSum inner( // actually clockwise this way
       Eigen::Vector2d(0.5, 0.5), cos_list_i, sin_list_i, 0, 2 * M_PI);
 
+  // Quadrature order
   unsigned order = 16;
   std::cout << "#quadrature order: " << order << std::endl;
   std::cout << std::setw(10) << "#numpanels" << std::setw(25) << "c*(gradu.n)^2"
@@ -226,14 +244,14 @@ int main() {
 
   out << "#quadrature order: " << order << std::endl;
   out << std::setw(10) << "#numpanels" << std::setw(25) << "c*(gradu.n)^2"
-            << std::setw(25) << "BEM" << std::setw(25) << "0.5*(gradu)^2 ex."
-            << std::setw(25) << "Boundary Formula 1" << std::setw(25)
-            << "Boundary Formula 2" << std::endl;
+      << std::setw(25) << "BEM" << std::setw(25) << "0.5*(gradu)^2 ex."
+      << std::setw(25) << "Boundary Formula 1" << std::setw(25)
+      << "Boundary Formula 2" << std::endl;
 
   for (unsigned numpanels = 4; numpanels < 1000; numpanels += 3) {
-    // parametricbem2d::ParametrizedMesh mesh(curve.split(numpanels));
-    unsigned numpanels_i = numpanels;
-    unsigned numpanels_o = numpanels;
+    unsigned numpanels_i = numpanels; // # panels for inner boundary
+    unsigned numpanels_o = numpanels; // # panels for outer boundary
+    // Getting the panels for the ParametricMesh object
     parametricbem2d::PanelVector panels_i = inner.split(numpanels_i);
     parametricbem2d::PanelVector panels_o = outer.split(numpanels_o);
     parametricbem2d::PanelVector panels;
@@ -241,13 +259,8 @@ int main() {
                   panels_i.end()); // inner panels added first
     panels.insert(panels.end(), panels_o.begin(), panels_o.end());
     parametricbem2d::ParametrizedMesh mesh(panels);
-    //parametricbem2d::ParametrizedMesh mesh(outer.split(numpanels));
-    // parametricbem2d::ParametrizedMesh lmesh = convert_to_linear(mesh);
-    double force = CalculateForce(mesh, g, nu, order, out);
-    // Force using linear mesh!
-    // double force = CalculateForce(lmesh, g, nu, order);
-    // std::cout << "numpanels: " << numpanels << "  Force = " << force
-    //          << std::endl;
+    // Evaluating the shape gradients
+    double force = CalculateForce(mesh, g, nu, order, out, u);
   }
 
   return 0;

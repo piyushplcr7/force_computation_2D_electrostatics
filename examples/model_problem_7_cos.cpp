@@ -4,12 +4,12 @@
 #include "parametrized_fourier_sum.hpp"
 #include "parametrized_line.hpp"
 #include <Eigen/Dense>
+#include <chrono>
 #include <cmath>
+#include <fstream>
 #include <functional>
 #include <iostream>
-#include <chrono>
 #include <string>
-#include <fstream>
 
 // format of the gradient:
 // dv1/dx1  dv2/dx1
@@ -19,67 +19,87 @@
 // d2 v/dx1 dx1              d2 v/ dx1 dx2
 // d2 v/ dx1 dx2             d2 v/ dx2 dx2
 
-bool inner(double x, double y) { return (fabs(x) < 2 && fabs(y) < 2); }
-
+/*
+ * Class representing the Dirichlet boundary conditions given by the corner
+ * singular function. This class contains the singularity.
+ */
 class G {
 public:
   double operator()(const Eigen::Vector2d &X) const {
     double x = X(0);
     double y = X(1);
-    double r = std::sqrt(x*x+y*y);
-    double phi = xy_to_phi(x,y);
-    return std::pow(r,2./3.)*sin(2./3.*phi);
+    double r = std::sqrt(x * x + y * y);
+    double phi = xy_to_phi(x, y);
+    return std::pow(r, 2. / 3.) * sin(2. / 3. * phi);
   }
 
   Eigen::Vector2d grad(const Eigen::Vector2d &X) const {
     double x = X(0);
     double y = X(1);
-    double r = std::sqrt(x*x+y*y);
-    double phi = xy_to_phi(x,y);
-    return 2./3.*std::pow(r,-1./3.)*Eigen::Vector2d(-sin(phi/3.),cos(phi/3.));
+    double r = std::sqrt(x * x + y * y);
+    double phi = xy_to_phi(x, y);
+    return 2. / 3. * std::pow(r, -1. / 3.) *
+           Eigen::Vector2d(-sin(phi / 3.), cos(phi / 3.));
   }
 };
 
+/*
+ * Class representing the Dirichlet boundary conditions given by the corner
+ * singular function. This class does not contain a singularity.
+ */
 class GS {
 public:
   double operator()(const Eigen::Vector2d &X) const {
     double x = X(0);
     double y = X(1);
-    double r = std::sqrt(x*x+y*y);
-    double phi = xy_to_phi(x,y);
-    return r*sin(2./3.*phi);
+    double r = std::sqrt(x * x + y * y);
+    double phi = xy_to_phi(x, y);
+    return r * sin(2. / 3. * phi);
   }
 
   Eigen::Vector2d grad(const Eigen::Vector2d &X) const {
     double x = X(0);
     double y = X(1);
-    double r = std::sqrt(x*x+y*y);
-    double phi = xy_to_phi(x,y);
-    return Eigen::Vector2d(sin(2.*phi/3.)*cos(phi)-2./3.*cos(2./3.*phi)*sin(phi),
-                           sin(2.*phi/3.)*sin(phi)+2./3.*cos(2./3.*phi)*cos(phi));
+    double r = std::sqrt(x * x + y * y);
+    double phi = xy_to_phi(x, y);
+    return Eigen::Vector2d(sin(2. * phi / 3.) * cos(phi) -
+                               2. / 3. * cos(2. / 3. * phi) * sin(phi),
+                           sin(2. * phi / 3.) * sin(phi) +
+                               2. / 3. * cos(2. / 3. * phi) * cos(phi));
   }
 };
 
+/*
+ * Class representing the Dirichlet boundary conditions given by the corner
+ * singular function. This class contains a different singularity than the
+ * corner singular function.
+ */
 class GNS {
 public:
   double operator()(const Eigen::Vector2d &X) const {
     double x = X(0);
     double y = X(1);
-    double r = std::sqrt(x*x+y*y);
-    double phi = xy_to_phi(x,y);
-    return std::pow(r,3./4.)*sin(2./3.*phi);
+    double r = std::sqrt(x * x + y * y);
+    double phi = xy_to_phi(x, y);
+    return std::pow(r, 3. / 4.) * sin(2. / 3. * phi);
   }
 
   Eigen::Vector2d grad(const Eigen::Vector2d &X) const {
     double x = X(0);
     double y = X(1);
-    double r = std::sqrt(x*x+y*y);
-    double phi = xy_to_phi(x,y);
-    return std::pow(r,-1./4.)*Eigen::Vector2d(3./4.*sin(2.*phi/3.)*cos(phi)-2./3.*cos(2./3.*phi)*sin(phi),
-                           3./4.*sin(2.*phi/3.)*sin(phi)+2./3.*cos(2./3.*phi)*cos(phi));
+    double r = std::sqrt(x * x + y * y);
+    double phi = xy_to_phi(x, y);
+    return std::pow(r, -1. / 4.) *
+           Eigen::Vector2d(3. / 4. * sin(2. * phi / 3.) * cos(phi) -
+                               2. / 3. * cos(2. / 3. * phi) * sin(phi),
+                           3. / 4. * sin(2. * phi / 3.) * sin(phi) +
+                               2. / 3. * cos(2. / 3. * phi) * cos(phi));
   }
 };
 
+/*
+ * Class representing the velocity field nu(x,y,m,n) = [ cos(mx) cos(ny), 0]
+ */
 template <int m, int n> class NU_XYMN_1 {
 public:
   Eigen::Vector2d operator()(const Eigen::Vector2d &X) const {
@@ -120,6 +140,9 @@ public:
   }
 };
 
+/*
+ * Class representing the velocity field nu(x,y,m,n) = [ 0, cos(mx) cos(ny)]
+ */
 template <int m, int n> class NU_XYMN_2 {
 public:
   Eigen::Vector2d operator()(const Eigen::Vector2d &X) const {
@@ -161,50 +184,54 @@ public:
 };
 
 int main() {
-  //G g;
-  //GS g;
+  // Boundary condition
+  // G g;
+  // GS g;
   GNS g;
+  // True solution
+  G u;
 
+  // Initializing the variables m,n (used in the velocity fields) using
+  // environment variables MM, NN
   unsigned m = MM;
   unsigned n = NN;
 
-  #if VEL == 1
+// Velocity field in x direction
+#if VEL == 1
   std::string filename("mp7cosxymn1_");
-  filename += to_string(m)+"_"+to_string(n);
+  filename += to_string(m) + "_" + to_string(n);
 
   std::ofstream out(filename);
   std::cout << "pacman, nu_xymn_1" << std::endl;
   out << "#pacman, nu_xymn_1" << std::endl;
-  NU_XYMN_1<MM,NN> nu;
-  #endif
+  NU_XYMN_1<MM, NN> nu;
+#endif
 
-  #if VEL == 2
+// Velocity field in y direction
+#if VEL == 2
   std::string filename("mp7cosxymn2_");
-  filename += to_string(m)+"_"+to_string(n);
+  filename += to_string(m) + "_" + to_string(n);
 
   std::ofstream out(filename);
   std::cout << "pacman, nu_xymn_2" << std::endl;
   out << "#pacman, nu_xymn_2" << std::endl;
-  NU_XYMN_2<MM,NN> nu;
-  #endif
+  NU_XYMN_2<MM, NN> nu;
+#endif
 
   std::cout << "#MM NN: " << MM << " " << NN << std::endl;
   out << "#MM NN: " << MM << " " << NN << std::endl;
 
-  std::cout << "#Linear Mesh!" << std::endl;
-  std::cout << "#g const" << std::endl;
-  out << "#Linear Mesh!" << std::endl;
-  out << "#g const" << std::endl;
+  // Definition of the pacman domain
+  Eigen::Vector2d B(0, -1); // Bottom most point
+  Eigen::Vector2d R(1, 0);  // Right most point
+  Eigen::Vector2d C(0, 0);  // Center
 
-  // pacman
-  Eigen::Vector2d B(0, -1);
-  Eigen::Vector2d R(1, 0);
-  Eigen::Vector2d C(0, 0);
-
-  parametricbem2d::ParametrizedLine l1(C, R); // right
-  parametricbem2d::ParametrizedLine l2(B, C); // top
-  parametricbem2d::ParametrizedCircularArc curve(Eigen::Vector2d(0,0),1,0,3*M_PI/2);
-
+  parametricbem2d::ParametrizedLine l1(C, R); // Edge parallel to x axis
+  parametricbem2d::ParametrizedLine l2(B, C); // Edge parallel to y axis
+  // Curved part of the boundary
+  parametricbem2d::ParametrizedCircularArc curve(Eigen::Vector2d(0, 0), 1, 0,
+                                                 3 * M_PI / 2);
+  // Quadrature order
   unsigned order = 16;
   std::cout << "#quadrature order: " << order << std::endl;
   std::cout << std::setw(10) << "#numpanels" << std::setw(25) << "c*(gradu.n)^2"
@@ -214,29 +241,24 @@ int main() {
 
   out << "#quadrature order: " << order << std::endl;
   out << std::setw(10) << "#numpanels" << std::setw(25) << "c*(gradu.n)^2"
-            << std::setw(25) << "BEM" << std::setw(25) << "0.5*(gradu)^2 ex."
-            << std::setw(25) << "Boundary Formula 1" << std::setw(25)
-            << "Boundary Formula 2" << std::endl;
+      << std::setw(25) << "BEM" << std::setw(25) << "0.5*(gradu)^2 ex."
+      << std::setw(25) << "Boundary Formula 1" << std::setw(25)
+      << "Boundary Formula 2" << std::endl;
 
   for (unsigned numpanels = 2; numpanels < 1001; numpanels += 1) {
-    //auto start = std::chrono::system_clock::now();
     unsigned temp = numpanels;
+    // Getting the panels for different parts of the boundary
     parametricbem2d::PanelVector panels_l1(l1.split(temp));
     parametricbem2d::PanelVector panels_curve(curve.split(temp));
     parametricbem2d::PanelVector panels_l2(l2.split(temp));
-
+    // Creating the ParametricMesh object
     parametricbem2d::PanelVector panels;
     panels.insert(panels.end(), panels_l1.begin(), panels_l1.end());
     panels.insert(panels.end(), panels_curve.begin(), panels_curve.end());
     panels.insert(panels.end(), panels_l2.begin(), panels_l2.end());
     parametricbem2d::ParametrizedMesh mesh(panels);
-
-    double force = CalculateForce(mesh, g, nu, order, out);
-
-    //auto end = std::chrono::system_clock::now();
-    //auto elapsed =
-    //std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
-    //std::cout << "numpanels: " << mesh.getNumPanels() << "  "<< elapsed.count() << std::endl;
+    // Evaluating the shape gradients
+    double force = CalculateForce(mesh, g, nu, order, out, u);
   }
 
   return 0;
