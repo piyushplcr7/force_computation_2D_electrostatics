@@ -1,0 +1,2 @@
+/usr/bin/ar qc libhypersingular.a  CMakeFiles/hypersingular.dir/hypersingular.cpp.o CMakeFiles/hypersingular.dir/parametrized_mesh.cpp.o
+/usr/bin/ranlib libhypersingular.a

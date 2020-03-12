@@ -1,0 +1,33 @@
+Determining if the pthread_create exist failed with the following output:
+Change Dir: /u/ppanchal/ETH/fcsc/build/CMakeFiles/CMakeTmp
+
+Run Build Command(s):/usr/bin/gmake cmTC_d843f/fast 
+/usr/bin/gmake -f CMakeFiles/cmTC_d843f.dir/build.make CMakeFiles/cmTC_d843f.dir/build
+gmake[1]: Entering directory '/u/ppanchal/ETH/fcsc/build/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_d843f.dir/CheckSymbolExists.c.o
+/usr/lib64/ccache/cc    -o CMakeFiles/cmTC_d843f.dir/CheckSymbolExists.c.o   -c /u/ppanchal/ETH/fcsc/build/CMakeFiles/CMakeTmp/CheckSymbolExists.c
+Linking C executable cmTC_d843f
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_d843f.dir/link.txt --verbose=1
+/usr/lib64/ccache/cc      -rdynamic CMakeFiles/cmTC_d843f.dir/CheckSymbolExists.c.o  -o cmTC_d843f 
+/usr/bin/ld: CMakeFiles/cmTC_d843f.dir/CheckSymbolExists.c.o: in function `main':
+CheckSymbolExists.c:(.text+0x16): undefined reference to `pthread_create'
+collect2: error: ld returned 1 exit status
+gmake[1]: *** [CMakeFiles/cmTC_d843f.dir/build.make:87: cmTC_d843f] Error 1
+gmake[1]: Leaving directory '/u/ppanchal/ETH/fcsc/build/CMakeFiles/CMakeTmp'
+gmake: *** [Makefile:121: cmTC_d843f/fast] Error 2
+
+File /u/ppanchal/ETH/fcsc/build/CMakeFiles/CMakeTmp/CheckSymbolExists.c:
+/* */
+#include <pthread.h>
+
+int main(int argc, char** argv)
+{
+  (void)argv;
+#ifndef pthread_create
+  return ((int*)(&pthread_create))[argc];
+#else
+  (void)argc;
+  return 0;
+#endif
+}
+

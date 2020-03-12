@@ -1,0 +1,2 @@
+/usr/bin/ar qc libadj_double_layer.a  CMakeFiles/adj_double_layer.dir/adj_double_layer.cpp.o CMakeFiles/adj_double_layer.dir/parametrized_mesh.cpp.o
+/usr/bin/ranlib libadj_double_layer.a

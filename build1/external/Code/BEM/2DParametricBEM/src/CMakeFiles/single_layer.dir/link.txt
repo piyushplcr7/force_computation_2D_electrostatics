@@ -1,0 +1,2 @@
+/usr/bin/ar qc libsingle_layer.a  CMakeFiles/single_layer.dir/single_layer.cpp.o CMakeFiles/single_layer.dir/parametrized_mesh.cpp.o
+/usr/bin/ranlib libsingle_layer.a

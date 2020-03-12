@@ -1,0 +1,2 @@
+/usr/bin/ar qc libparametrizations.a  CMakeFiles/parametrizations.dir/parametrized_circular_arc.cpp.o CMakeFiles/parametrizations.dir/parametrized_fourier_sum.cpp.o CMakeFiles/parametrizations.dir/parametrized_line.cpp.o CMakeFiles/parametrizations.dir/parametrized_polynomial.cpp.o CMakeFiles/parametrizations.dir/parametrized_semi_circle.cpp.o
+/usr/bin/ranlib libparametrizations.a
