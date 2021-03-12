@@ -154,6 +154,8 @@ double CalculateForce(const parametricbem2d::ParametrizedMesh &mesh, const G &g,
   // Getting the adjoint solution
   Eigen::VectorXd adj_sol = SolveAdjoint(mesh, potential, order);
 
+  std::cout << "(p + psi/2).norm() = " << (adj_sol + state_sol /2).norm() << std::endl;
+
   // Evaluating the BEM shape gradient formula
   double force = eval_BEM_sg(mesh, g, nu, state_sol, adj_sol, order);
 
@@ -471,14 +473,26 @@ double eval_BEM_sg(const parametricbem2d::ParametrizedMesh &mesh, const G &g,
                    const NU &nu, const Eigen::VectorXd &state_sol,
                    const Eigen::VectorXd &adj_sol, unsigned order) {
   // Initializing the BEM shape gradient value
-  double force = 0;
+  double force = 0,f1=0,f2=0,f3=0,f4=0,f56=0,f7=0;
   // Evaluating the individual terms in the BEM shape gradient formula
-  force += EvaluateFirst(mesh, g, nu, state_sol, order);
-  force += EvaluateSecond(mesh, state_sol, adj_sol, nu, order);
-  force += EvaluateThird(mesh, adj_sol, g, nu, order);
-  force += EvaluateFourth(mesh, adj_sol, g, nu, order);
-  force += EvaluateFiveSix(mesh, adj_sol, g, nu, order);
-  force += EvaluateSeventh(mesh, g, nu, adj_sol, order);
+  f1 = EvaluateFirst(mesh, g, nu, state_sol, order);
+  f2 = EvaluateSecond(mesh, state_sol, adj_sol, nu, order);
+  f3 = EvaluateThird(mesh, adj_sol, g, nu, order);
+  f4= EvaluateFourth(mesh, adj_sol, g, nu, order);
+  f56= EvaluateFiveSix(mesh, adj_sol, g, nu, order);
+  f7 = EvaluateSeventh(mesh, g, nu, adj_sol, order);
+  force = f1 + f2 + f3 + f4 + f56 + f7;
+  //
+  std::cout << "f1 : " <<  f1 << std::endl;
+  std::cout << "f2 : " <<  f2 << std::endl;
+  std::cout << "f3 : " <<  f3 << std::endl;
+  std::cout << "f4 : " <<  f4 << std::endl;
+  std::cout << "f56 : " <<  f56 << std::endl;
+  std::cout << "f7 : " <<  f7 << std::endl;
+  std::cout << "f3 4 56 : " << f3 + f4 + f56 << std::endl;
+  std::cout << "force : " <<  force << std::endl;
+  double fixedchargeformula = EvaluateFixedChargeFormula(mesh,state_sol,nu,order);
+  std::cout << "fixed charge formula : " << fixedchargeformula << std::endl;
   return force;
 }
 
@@ -1654,6 +1668,193 @@ double EvaluateFiveSix(const parametricbem2d::ParametrizedMesh &mesh,
     std::cout << "u vector\n" << U << std::endl;
   }
   return -1. / 2. / M_PI * adj_sol.dot(U);
+}
+
+/*
+ * This function evaluates the fixed charge 2D shape gradient formula
+ *
+ * @param mesh ParametricMesh object representing the domain for which the
+ * computations have to be done
+ * @tparam G template type for the dirichlet data. Should support evaluation
+ * operator and a grad function for calculating the gradient.
+ * @param g Function specifying the Dirichlet data
+ * @tparam NU Template type for the velocity field. Should support evaluation
+ * operator, grad function for calculating the gradient and dgrad1/dgrad2
+ * functions for evaluating the second order derivatives.
+ * @param nu Object of type NU, specifying the velocity field
+ * @param state_sol Eigen::VectorXd type object storing the state solution
+ * coefficients
+ * @param adj_sol Eigen::VectorXd type object storing the adjoint solution
+ * coefficients
+ * @param order Quadrature order to be used in numerical integration
+ * @return The second term in the 2D shape gradient formula
+ */
+template <typename NU>
+double EvaluateFixedChargeFormula(const parametricbem2d::ParametrizedMesh &mesh,
+                      const Eigen::VectorXd &state_sol, const NU &nu,
+                      unsigned order) {
+  // The BEM space used for solving the state and adjoint problems
+  parametricbem2d::DiscontinuousSpace<0> space;
+  // Getting the panels
+  parametricbem2d::PanelVector panels = mesh.getPanels();
+  // Number of reference shape functions for the space
+  unsigned q = space.getQ();
+  // Getting the number of panels
+  unsigned numpanels = mesh.getNumPanels();
+  // Getting space dimensions
+  unsigned dims = space.getSpaceDim(numpanels);
+  // Initializing the R_{ij} matrix
+  Eigen::MatrixXd R = Eigen::MatrixXd::Constant(dims, dims, 0);
+
+  // Looping over the panels and evaluating the local integrals
+  for (unsigned i = 0; i < numpanels; ++i) {
+    for (unsigned j = 0; j < numpanels; ++j) {
+      // The panels pi and pi' for which the local integral has to be
+      // evaluated
+      parametricbem2d::AbstractParametrizedCurve &pi = *panels[i];
+      parametricbem2d::AbstractParametrizedCurve &pi_p = *panels[j];
+
+      // Going over reference shape functions
+      for (unsigned k = 0; k < q; ++k) {
+        for (unsigned l = 0; l < q; ++l) {
+          double local_integral = 0;
+          // coinciding panels case
+          if (i == j) {
+            auto integrand = [&](double t, double s) {
+              double non_singular = space.evaluateShapeFunction(k, t) *
+                                    space.evaluateShapeFunction(l, s) *
+                                    pi.Derivative(t).norm() *
+                                    pi.Derivative(s).norm();
+              double singular;
+              // Direct evaluation when away from singularity
+              if (fabs(s - t) > sqrt_epsilon) {
+
+                singular = (pi(s) - pi(t)).dot(nu(pi(s)) - nu(pi(t))) /
+                           (pi(s) - pi(t)).squaredNorm();
+
+              }
+              // stable evaluation near singularity using Taylor expansion
+              else {
+                singular = pi.Derivative((s + t) / 2.)
+                               .dot(nu.grad(pi((s + t) / 2.)).transpose() *
+                                    pi.Derivative((s + t) / 2.)) /
+                           (pi.Derivative((s + t) / 2.)).squaredNorm();
+              }
+
+              return singular * non_singular;
+            };
+            // Function for upper limit of the integral
+            auto ul = [&](double x) { return 1.; };
+            // Function for lower limit of the integral
+            auto ll = [&](double x) { return -1.; };
+            local_integral = parametricbem2d::ComputeDoubleIntegral(
+                integrand, -1., 1., ll, ul, order);
+          }
+
+          // Adjacent panels case
+          else if ((pi(1) - pi_p(-1)).norm() / 100. < tol ||
+                   (pi(-1) - pi_p(1)).norm() / 100. < tol) {
+            // Swap is used to check whether pi(1) = pi'(-1) or pi(-1) =
+            // pi'(1)
+            bool swap = (pi(1) - pi_p(-1)).norm() / 100. > tol;
+            // Panel lengths for local arclength parametrization
+            double length_pi =
+                2 * pi.Derivative(swap ? -1 : 1)
+                        .norm(); // Length for panel pi to ensure norm of
+                                 // arclength parametrization is 1 at the
+                                 // common point
+            double length_pi_p =
+                2 * pi_p.Derivative(swap ? 1 : -1)
+                        .norm(); // Length for panel pi_p to ensure norm of
+                                 // arclength parametrization is 1 at the
+                                 // common point
+
+            // Local integrand in polar coordinates
+            auto integrand = [&](double phi, double r) {
+              // Converting polar coordinates to local arclength coordinates
+              double s_pr = r * cos(phi);
+              double t_pr = r * sin(phi);
+              // Converting local arclength coordinates to reference interval
+              // coordinates
+              double s = swap ? 1 - 2 * s_pr / length_pi_p
+                              : 2 * s_pr / length_pi_p - 1;
+              double t =
+                  swap ? 2 * t_pr / length_pi - 1 : 1 - 2 * t_pr / length_pi;
+              // reference interval coordinates corresponding to zeros in
+              // arclength coordinates
+              double s0 = swap ? 1 : -1;
+              double t0 = swap ? -1 : 1;
+
+              double non_singular =
+                  space.evaluateShapeFunction(k, t) *
+                  space.evaluateShapeFunction(l, s) * pi.Derivative(t).norm() *
+                  pi_p.Derivative(s).norm() * (4 / length_pi / length_pi_p);
+              double singular;
+              // Direct evaluation away from the singularity
+              if (r > sqrt_epsilon) {
+                singular = (pi_p(s) - pi(t)).dot(nu(pi_p(s)) - nu(pi(t))) /
+                           (pi_p(s) - pi(t)).squaredNorm();
+
+              }
+              // Stable evaluation near singularity using Taylor expansion
+              else {
+                singular =
+                    (cos(phi) * pi_p.Derivative(s0) * 2 / length_pi_p +
+                     sin(phi) * pi.Derivative(t0) * 2 / length_pi)
+                        .dot(nu.grad(pi(t0)).transpose() *
+                             (cos(phi) * pi_p.Derivative(s0) * 2 / length_pi_p +
+                              sin(phi) * pi.Derivative(t0) * 2 / length_pi)) /
+                    (1 + sin(2 * phi) *
+                             pi.Derivative(t0).dot(pi_p.Derivative(s0)) * 4 /
+                             length_pi / length_pi_p);
+              }
+              // Including the Jacobian of transformation 'r'
+              return r * singular * non_singular;
+            };
+            // Getting the split point for integral over the angle in polar
+            // coordinates
+            double alpha = std::atan(length_pi / length_pi_p);
+            // Defining upper and lower limits of inner integrals
+            auto ll = [&](double phi) { return 0; };
+            auto ul1 = [&](double phi) { return length_pi_p / cos(phi); };
+            auto ul2 = [&](double phi) { return length_pi / sin(phi); };
+            // Computing the local integral
+            local_integral = parametricbem2d::ComputeDoubleIntegral(
+                integrand, 0, alpha, ll, ul1, order);
+            local_integral += parametricbem2d::ComputeDoubleIntegral(
+                integrand, alpha, M_PI / 2., ll, ul2, order);
+          }
+
+          // General case
+          else {
+            // Local integral
+            auto integrand = [&](double t, double s) {
+              return space.evaluateShapeFunction(k, t) *
+                     space.evaluateShapeFunction(l, s) *
+                     pi.Derivative(t).norm() * pi_p.Derivative(s).norm() *
+                     (pi_p(s) - pi(t)).dot(nu(pi_p(s)) - nu(pi(t))) /
+                     (pi_p(s) - pi(t)).squaredNorm();
+            };
+            // Function for upper limit of the integral
+            auto ul = [&](double x) { return 1.; };
+            // Function for lower limit of the integral
+            auto ll = [&](double x) { return -1.; };
+            local_integral = parametricbem2d::ComputeDoubleIntegral(
+                integrand, -1, 1, ll, ul, order);
+          }
+
+          // Local to global mapping
+          unsigned II = space.LocGlobMap2(k + 1, i + 1, mesh) - 1;
+          unsigned JJ = space.LocGlobMap2(l + 1, j + 1, mesh) - 1;
+          R(II, JJ) += local_integral;
+        }
+      }
+    }
+  }
+  // with linear velocity, R matrix should contain the multiples of panel
+  // lengths std::cout << "R matrix \n" << R << std::endl;
+  double alpha = 1;
+  return -1 / 2. / M_PI * state_sol.dot(R * (state_sol/2/alpha));
 }
 
 #endif

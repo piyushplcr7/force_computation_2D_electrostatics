@@ -1,4 +1,4 @@
-#include "BoundaryMesh.hpp"
+//#include "BoundaryMesh.hpp"
 #include "force_calculation.hpp"
 #include "parametrized_circular_arc.hpp"
 #include "parametrized_fourier_sum.hpp"
@@ -247,6 +247,8 @@ int main() {
   // G g;
   // GS g;
   GNS g;
+
+  G u; // True solution 
 
   // Initializing the variables m,n (used in the velocity fields) using
   // environment variables MM, NN

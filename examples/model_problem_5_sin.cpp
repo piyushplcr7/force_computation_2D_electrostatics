@@ -1,4 +1,4 @@
-#include "BoundaryMesh.hpp"
+//#include "BoundaryMesh.hpp"
 #include "force_calculation.hpp"
 #include "parametrized_circular_arc.hpp"
 #include "parametrized_fourier_sum.hpp"
@@ -32,7 +32,7 @@ public:
   double operator()(const Eigen::Vector2d &X) const {
     double x = X(0);
     double y = X(1);
-    if (inner(x, y))
+    if (!inner(x, y))
       return 0;
     else
       return 1;
@@ -186,7 +186,7 @@ int main() {
   parametricbem2d::ParametrizedLine ob(SWo, SEo); // bottom
 
   // quadrature order
-  unsigned order = 32;
+  unsigned order = 16;
   std::cout << "#quadrature order: " << order << std::endl;
   std::cout << std::setw(10) << "#numpanels" << std::setw(25) << "c*(gradu.n)^2"
             << std::setw(25) << "BEM" << std::setw(25) << "0.5*(gradu)^2 ex."
