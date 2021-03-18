@@ -41,6 +41,54 @@ public:
 };
 
 /*
+ * Class representing the velocity field nu
+ */
+class NU_ROT {
+private:
+  Eigen::Vector2d center;
+public:
+  NU_ROT(const Eigen::Vector2d &x0):center(x0){};
+
+  Eigen::Vector2d operator()(const Eigen::Vector2d &X) const {
+    double x = X(0);
+    double y = X(1);
+    if (abs(x) > 5.99 || abs(y) > 5.99)
+      return Eigen::Vector2d(0,0);
+
+    double r = (X-center).norm();
+    Eigen::Vector2d xnew = X - center;
+    x = xnew(0);
+    y = xnew(1);
+    return Eigen::Vector2d(-y,x);
+  }
+
+  Eigen::MatrixXd grad(const Eigen::Vector2d &X) const {
+    double x = X(0);
+    double y = X(1);
+    Eigen::MatrixXd M(2, 2);
+    if (abs(x) > 5.99 || abs(y) > 5.99)
+      M << 0, 0, 0, 0;
+    M << 0,1,-1,0;
+    return M;
+  }
+
+  double div(const Eigen::Vector2d &X) const {
+    return 0;
+  }
+
+  Eigen::MatrixXd dgrad1(const Eigen::Vector2d &X) const {
+    Eigen::MatrixXd M(2, 2);
+    M << 0, 0, 0, 0;
+    return M;
+  }
+  Eigen::MatrixXd dgrad2(const Eigen::Vector2d &X) const {
+    Eigen::MatrixXd M(2, 2);
+    M << 0, 0, 0, 0;
+    return M;
+  }
+};
+
+/*
  * Class representing the velocity field nu(x,y,m,n) = [x^m * y^n, 0]
  */
 template <int m, int n> class NU_XYMN_1 {
@@ -224,9 +272,6 @@ int main() {
   NU_XYMN_2<MM, NN> nu;
 #endif
 
-  std::cout << "#MM NN: " << MM << " " << NN << std::endl;
-  out << "#MM NN: " << MM << " " << NN << std::endl;
-
   // Defining the kite domain
   Eigen::MatrixXd cos_list_o(2, 2);
   cos_list_o << 3.5, 1.625, 0, 0;
@@ -234,6 +279,65 @@ int main() {
   sin_list_o << 0, 0, 3.5, 0;
   parametricbem2d::ParametrizedFourierSum kite(
       Eigen::Vector2d(0.3, 0.3), cos_list_o, sin_list_o, 2 * M_PI, 0);
+
+  unsigned order = 16;
+  // Calculating the center of mass for the inner body:
+  auto cg = [&](parametricbem2d::PanelVector& panels) {
+    unsigned N = panels.size();
+    double integralx(0), integraly(0), integrald(0);
+    for (unsigned i = 0 ; i < N ; ++i) {
+      parametricbem2d::AbstractParametrizedCurve &pi = *panels[i];
+      // X component
+      auto integrandx = [&](double t) {
+        double x = pi(t)(0);
+        Eigen::Vector2d tangent = pi.Derivative(t);
+        Eigen::Vector2d normal;
+        normal << tangent(1), -tangent(0);
+        normal /= normal.norm();
+        return Eigen::Vector2d(x*x/2.,0).dot(normal) * pi.Derivative(t).norm();
+      };
+      // Y component
+      auto integrandy = [&](double t) {
+        double y = pi(t)(1);
+        Eigen::Vector2d tangent = pi.Derivative(t);
+        Eigen::Vector2d normal;
+        normal << tangent(1), -tangent(0);
+        normal /= normal.norm();
+        return Eigen::Vector2d(0,y*y/2.).dot(normal) * pi.Derivative(t).norm();
+      };
+      // Denominator
+      auto integrandd = [&](double t) {
+        double x = pi(t)(0);
+        Eigen::Vector2d tangent = pi.Derivative(t);
+        Eigen::Vector2d normal;
+        normal << tangent(1), -tangent(0);
+        normal /= normal.norm();
+        return Eigen::Vector2d(x,0).dot(normal) * pi.Derivative(t).norm();
+      };
+      integralx += parametricbem2d::ComputeIntegral(integrandx,-1,1,order);
+      integraly += parametricbem2d::ComputeIntegral(integrandy,-1,1,order);
+      integrald += parametricbem2d::ComputeIntegral(integrandd,-1,1,order);
+    }
+    return Eigen::Vector2d(integralx/integrald,integraly/integrald);
+  };
+
+  // Velocity field rotational
+  #if VEL == 3
+    std::string filename("kc3_");
+    filename += to_string(m) + "_" + to_string(n);
+
+    std::ofstream out(filename);
+    std::cout << "square and square, nu_xymn_2" << std::endl;
+    out << "#square and square, nu_xymn_2" << std::endl;
+    parametricbem2d::PanelVector cgpanels(kite.split(1));
+    Eigen::Vector2d CG = cg(cgpanels);
+    NU_ROT nu(CG);
+    std::cout << "Found CG: " << CG << std::endl;
+    std::cout << "nu cg check : " << nu(CG).transpose() << std::endl;
+  #endif
+
+  std::cout << "#MM NN: " << MM << " " << NN << std::endl;
+  out << "#MM NN: " << MM << " " << NN << std::endl;
 
   // Defining the outer big square with g = 0
   // Outer square vertices
@@ -247,7 +351,7 @@ int main() {
   parametricbem2d::ParametrizedLine ol(NWo, SWo); // left
   parametricbem2d::ParametrizedLine ob(SWo, SEo); // bottom
   // quadrature order
-  unsigned order = 16;
+  //unsigned order = 16;
   std::cout << "#quadrature order: " << order << std::endl;
   std::cout << std::setw(10) << "#numpanels" << std::setw(25) << "c*(gradu.n)^2"
             << std::setw(25) << "BEM" << std::setw(25) << "0.5*(gradu)^2 ex."

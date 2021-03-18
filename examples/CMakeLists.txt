@@ -38,6 +38,7 @@ add_executable(mp5sol model_problem_5_soln.cpp)
 add_executable(tri_cond triangle_conductor.cpp)
 add_executable(kite_cond kite_conductor.cpp)
 add_executable(square_cond square_conductor.cpp)
+add_executable(circ_cond circle_conductor.cpp)
 
 target_link_libraries(dinteg parametrizations adj_double_layer hypersingular single_layer double_layer quadrature)
 target_link_libraries(force parametrizations adj_double_layer hypersingular single_layer double_layer quadrature)
@@ -65,3 +66,4 @@ target_link_libraries(mp5sol parametrizations adj_double_layer hypersingular sin
 target_link_libraries(tri_cond parametrizations adj_double_layer hypersingular single_layer double_layer quadrature)
 target_link_libraries(kite_cond parametrizations adj_double_layer hypersingular single_layer double_layer quadrature)
 target_link_libraries(square_cond parametrizations adj_double_layer hypersingular single_layer double_layer quadrature)
+target_link_libraries(circ_cond parametrizations adj_double_layer hypersingular single_layer double_layer quadrature)
