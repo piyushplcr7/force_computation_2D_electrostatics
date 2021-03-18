@@ -1,10 +1,8 @@
 cmake_minimum_required(VERSION 2.8)
-#set(CMAKE_BUILD_TYPE Release)
 
 set(CMAKE_CXX_FLAGS "-Wall -Wextra")
 #set(CMAKE_CXX_FLAGS_DEBUG "-g")
-#set(CMAKE_CXX_FLAGS_RELEASE "-O3")
-#set(CMAKE_CXX_FLAGS "-O3")
+set(CMAKE_CXX_FLAGS_RELEASE "-O3")
 set(CMAKE_CXX_FLAGS "-std=c++11")
 add_definitions(-DMM=$(mm) -DNN=$(nn) -DVEL=$(vel))
 
