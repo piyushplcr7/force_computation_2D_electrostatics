@@ -150,7 +150,7 @@ double CalculateForce(const parametricbem2d::ParametrizedMesh &mesh, const G &g,
   // Getting the state solution using direct first kind BEM formulation
   Eigen::VectorXd state_sol =
       parametricbem2d::dirichlet_bvp::direct_first_kind::solve(mesh, potential,
-                                                               order);
+                                                               order); //std::cout << "Neumann trace: \n" << state_sol.transpose() << std::endl;
   // Getting the adjoint solution
   Eigen::VectorXd adj_sol = SolveAdjoint(mesh, potential, order);
 

@@ -27,10 +27,10 @@ public:
   double operator()(const Eigen::Vector2d &X) const {
     double x = X(0);
     double y = X(1);
-    if (abs(x) > 5.99 || abs(y) > 5.99)
-      return 1;
+    if (abs(x) > 1.99 || abs(y) > 1.99)
+      return 0;
     else
-      return 2;
+      return 1;
   }
 
   Eigen::Vector2d grad(const Eigen::Vector2d &X) const {
@@ -52,7 +52,7 @@ public:
   Eigen::Vector2d operator()(const Eigen::Vector2d &X) const {
     double x = X(0);
     double y = X(1);
-    if (abs(x) > 5.99 || abs(y) > 5.99)
+    if (abs(x) > 1.99 || abs(y) > 1.99)
       return Eigen::Vector2d(0,0);
 
     double r = (X-center).norm();
@@ -66,7 +66,7 @@ public:
     double x = X(0);
     double y = X(1);
     Eigen::MatrixXd M(2, 2);
-    if (abs(x) > 5.99 || abs(y) > 5.99)
+    if (abs(x) > 1.99 || abs(y) > 1.99)
       M << 0, 0, 0, 0;
     M << 0,1,-1,0;
     return M;
@@ -97,7 +97,7 @@ public:
     double x = X(0);
     double y = X(1);
     Eigen::Vector2d out;
-    if (abs(x) > 5.99 || abs(y) > 5.99)
+    if (abs(x) > 1.99 || abs(y) > 1.99)
       y = 0;
     else
       y = 1;
@@ -175,7 +175,7 @@ public:
     double x = X(0);
     double y = X(1);
     Eigen::Vector2d out;
-    if (abs(x) > 5.99 || abs(y) > 5.99)
+    if (abs(x) > 1.99 || abs(y) > 1.99)
       y = 0;
     else
       y = 1;
@@ -252,7 +252,7 @@ int main() {
 
 // Velocity field in x direction
 #if VEL == 1
-  std::string filename("kc1_");
+  std::string filename("sqkg1_");
   filename += to_string(m) + "_" + to_string(n);
 
   std::ofstream out(filename);
@@ -263,7 +263,7 @@ int main() {
 
 // Velocity field in y direction
 #if VEL == 2
-  std::string filename("kc2_");
+  std::string filename("sqkg2_");
   filename += to_string(m) + "_" + to_string(n);
 
   std::ofstream out(filename);
@@ -274,11 +274,11 @@ int main() {
 
   // Defining the kite domain
   Eigen::MatrixXd cos_list_o(2, 2);
-  cos_list_o << 3.5, 1.625, 0, 0;
+  cos_list_o << .35, .1625, 0, 0;
   Eigen::MatrixXd sin_list_o(2, 2);
-  sin_list_o << 0, 0, 3.5, 0;
+  sin_list_o << 0, 0, .35, 0;
   parametricbem2d::ParametrizedFourierSum kite(
-      Eigen::Vector2d(0.3, 0.3), cos_list_o, sin_list_o, 2 * M_PI, 0);
+      Eigen::Vector2d(0.3, 0.5), cos_list_o, sin_list_o, 2 * M_PI, 0);
 
   unsigned order = 16;
   // Calculating the center of mass for the inner body:
@@ -323,7 +323,7 @@ int main() {
 
   // Velocity field rotational
   #if VEL == 3
-    std::string filename("kc3_");
+    std::string filename("sqkg3_");
     filename += to_string(m) + "_" + to_string(n);
 
     std::ofstream out(filename);
@@ -341,10 +341,10 @@ int main() {
 
   // Defining the outer big square with g = 0
   // Outer square vertices
-  Eigen::Vector2d NEo(6, 6);
-  Eigen::Vector2d NWo(-6, 6);
-  Eigen::Vector2d SEo(6, -6);
-  Eigen::Vector2d SWo(-6, -6);
+  Eigen::Vector2d NEo(2, 2);
+  Eigen::Vector2d NWo(-2, 2);
+  Eigen::Vector2d SEo(2, -2);
+  Eigen::Vector2d SWo(-2, -2);
   // Outer square edges
   parametricbem2d::ParametrizedLine Or(SEo, NEo); // right
   parametricbem2d::ParametrizedLine ot(NEo, NWo); // top
