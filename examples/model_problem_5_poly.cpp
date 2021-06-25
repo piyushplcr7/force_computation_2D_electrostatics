@@ -1,4 +1,4 @@
-#include "BoundaryMesh.hpp"
+//#include "BoundaryMesh.hpp"
 #include "force_calculation.hpp"
 #include "parametrized_circular_arc.hpp"
 #include "parametrized_fourier_sum.hpp"
@@ -54,6 +54,11 @@ public:
     double x = X(0);
     double y = X(1);
     Eigen::Vector2d out;
+    if (abs(x) > 1.99 || abs(y) > 1.99)
+      y = 0;
+    else
+      y = 1;
+    return Eigen::Vector2d(y,0);
     return Eigen::Vector2d(std::pow(x, m) * std::pow(y, n), 0);
   }
 
@@ -127,6 +132,11 @@ public:
     double x = X(0);
     double y = X(1);
     Eigen::Vector2d out;
+    if (abs(x) > 1.99 || abs(y) > 1.99)
+      y = 0;
+    else
+      y = 1;
+    return Eigen::Vector2d(0,y);
     return Eigen::Vector2d(0, std::pow(x, m) * std::pow(y, n));
   }
 
@@ -245,7 +255,7 @@ int main() {
   parametricbem2d::ParametrizedLine ob(SWo, SEo); // bottom
 
   // Quadrature order
-  unsigned order = 32;
+  unsigned order = 16;
   std::cout << "#quadrature order: " << order << std::endl;
   std::cout << std::setw(10) << "#numpanels" << std::setw(25) << "c*(gradu.n)^2"
             << std::setw(25) << "BEM" << std::setw(25) << "0.5*(gradu)^2 ex."
@@ -257,7 +267,7 @@ int main() {
       << std::setw(25) << "BEM" << std::setw(25) << "0.5*(gradu)^2 ex."
       << std::setw(25) << "Boundary Formula 1" << std::setw(25)
       << "Boundary Formula 2" << std::endl;
-  for (unsigned numpanels = 2; numpanels < 1001; numpanels += 1) {
+  for (unsigned numpanels = 2; numpanels < 1001; numpanels += 2) {
     unsigned temp = numpanels;
     // Getting panels for the edges of inner sqyare
     parametricbem2d::PanelVector panels_ir(ir.split(temp)); // right

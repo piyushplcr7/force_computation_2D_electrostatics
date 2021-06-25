@@ -40,6 +40,40 @@ public:
   }
 };
 
+Eigen::Vector2d exkite(double t) {
+  return Eigen::Vector2d(0.3+.35 * std::cos(t) + .1625 * std::cos(2 * t),
+                         0.5+.35 * std::sin(t));
+}
+
+Eigen::Vector2d exdkite(double t) {
+  return Eigen::Vector2d(-.35 * std::sin(t) - 2 * .1625 * std::sin(2 * t),
+                         .35 * std::cos(t));
+}
+
+Eigen::VectorXd get_kite_params(unsigned N) {
+  // Calculating the length of the kite
+  unsigned N_length = 500; // No. of points used in the calculation
+  Eigen::VectorXd pts_length = Eigen::VectorXd::LinSpaced(N_length,0,2*M_PI);
+  double L = 0;
+  for (unsigned i = 0 ; i < N_length-1 ; ++i)
+    L += (exkite(pts_length(i)) - exkite(pts_length(i+1))).norm();
+
+  std::cout << "found length of the kite: " << L << std::endl;
+  // Solving the equation for Phi using explicit timestepping
+  unsigned k = 20; // multiplicity factor?
+  double h = L/N/k; // step size
+  Eigen::VectorXd phi_full = Eigen::VectorXd::Constant(N*k,0);
+  Eigen::VectorXd phi = Eigen::VectorXd::Constant(N,0);
+  for (unsigned i = 1 ; i < N*k ; ++i)
+    phi_full(i) = phi_full(i-1) + h /( exdkite(phi_full(i-1)) ).norm();
+
+  for (unsigned i = 0 ; i < N ; ++i)
+    phi(i) = phi_full(i*k);
+
+  return phi;
+}
+
+
 /*
  * Class representing the velocity field nu
  */
@@ -252,7 +286,7 @@ int main() {
 
 // Velocity field in x direction
 #if VEL == 1
-  std::string filename("sqkg1_");
+  std::string filename("sqkt_bdry_1_");
   filename += to_string(m) + "_" + to_string(n);
 
   std::ofstream out(filename);
@@ -263,7 +297,7 @@ int main() {
 
 // Velocity field in y direction
 #if VEL == 2
-  std::string filename("sqkg2_");
+  std::string filename("sqkt_bdry_2_");
   filename += to_string(m) + "_" + to_string(n);
 
   std::ofstream out(filename);
@@ -364,9 +398,29 @@ int main() {
       << std::setw(25) << "Boundary Formula 1" << std::setw(25)
       << "Boundary Formula 2" << std::endl;
   for (unsigned numpanels = 2; numpanels < 1001; numpanels += 1) {
-    unsigned temp = numpanels;
+    unsigned temp = 2*numpanels;
     // Creating the ParametricMesh object
-    parametricbem2d::PanelVector panels_kite(kite.split(numpanels));
+    //parametricbem2d::PanelVector panels_kite(kite.split(numpanels));
+    parametricbem2d::PanelVector panels_kite;
+    double lkite= 2.46756;
+    double lsquare = 16;
+    Eigen::VectorXd meshpts = get_kite_params(numpanels);
+      unsigned N = meshpts.size();
+      Eigen::VectorXd tempp(N+1);
+      tempp << meshpts, 2*M_PI;
+      tempp = -tempp + Eigen::VectorXd::Constant(N+1,2*M_PI);
+      std::cout << "temp: " << tempp.transpose() << std::endl;
+      for (unsigned i = 0 ; i < N ; ++i) {
+        // Defining the kite domain
+        Eigen::MatrixXd cos_list_o(2, 2);
+        cos_list_o << .35, .1625, 0, 0;
+        Eigen::MatrixXd sin_list_o(2, 2);
+        sin_list_o << 0, 0, .35, 0;
+        panels_kite.push_back(std::make_shared<parametricbem2d::ParametrizedFourierSum>(
+            Eigen::Vector2d(0.3, 0.5), cos_list_o, sin_list_o, tempp(i), tempp(i+1)));
+      }
+
+    // Meshing the sqkite equivalently in the parameter mesh
     // Creating the ParametricMesh object
     parametricbem2d::PanelVector panels;
     // Panels for the edges of outer square
