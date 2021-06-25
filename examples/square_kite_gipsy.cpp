@@ -132,16 +132,15 @@ public:
     double y = X(1);
     Eigen::Vector2d out;
     if (abs(x) > 1.99 || abs(y) > 1.99)
-      y = 0;
-    else
-      y = 1;
-    return Eigen::Vector2d(y,0);
+      return Eigen::Vector2d(0,0);
     return Eigen::Vector2d(std::pow(x, m) * std::pow(y, n), 0);
   }
 
   Eigen::MatrixXd grad(const Eigen::Vector2d &X) const {
     double x = X(0);
     double y = X(1);
+    if (abs(x) > 1.99 || abs(y) > 1.99)
+      return Eigen::MatrixXd::Constant(2,2,0);
     Eigen::MatrixXd M(2, 2);
     double powxm1, powym1;
     if (m == 0)
@@ -161,6 +160,8 @@ public:
   double div(const Eigen::Vector2d &X) const {
     double x = X(0);
     double y = X(1);
+    if (abs(x) > 1.99 || abs(y) > 1.99)
+      return 0;
     if (m == 0)
       return 0;
     else
@@ -170,6 +171,8 @@ public:
   Eigen::MatrixXd dgrad1(const Eigen::Vector2d &X) const {
     double x = X(0);
     double y = X(1);
+    if (abs(x) > 1.99 || abs(y) > 1.99)
+      return Eigen::MatrixXd::Constant(2,2,0);
     Eigen::MatrixXd M(2, 2);
     double M11, M12, M22;
 
@@ -210,16 +213,15 @@ public:
     double y = X(1);
     Eigen::Vector2d out;
     if (abs(x) > 1.99 || abs(y) > 1.99)
-      y = 0;
-    else
-      y = 1;
-    return Eigen::Vector2d(0,y);
+      return Eigen::Vector2d(0,0);
     return Eigen::Vector2d(0, std::pow(x, m) * std::pow(y, n));
   }
 
   Eigen::MatrixXd grad(const Eigen::Vector2d &X) const {
     double x = X(0);
     double y = X(1);
+    if (abs(x) > 1.99 || abs(y) > 1.99)
+      return Eigen::MatrixXd::Constant(2,2,0);
     Eigen::MatrixXd M(2, 2);
     double powxm1, powym1;
     if (m == 0)
@@ -238,6 +240,8 @@ public:
   double div(const Eigen::Vector2d &X) const {
     double x = X(0);
     double y = X(1);
+    if (abs(x) > 1.99 || abs(y) > 1.99)
+      return 0;
     if (n == 0)
       return 0;
     else
@@ -254,6 +258,8 @@ public:
   Eigen::MatrixXd dgrad2(const Eigen::Vector2d &X) const {
     double x = X(0);
     double y = X(1);
+    if (abs(x) > 1.99 || abs(y) > 1.99)
+      return Eigen::MatrixXd::Constant(2,2,0);
     Eigen::MatrixXd M(2, 2);
     double M11, M12, M22;
 

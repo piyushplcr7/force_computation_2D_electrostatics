@@ -82,13 +82,16 @@ public:
   Eigen::Vector2d operator()(const Eigen::Vector2d &X) const {
     double x = X(0);
     double y = X(1);
-    Eigen::Vector2d out;
+    if (abs(x) > 1.99 || abs(y) > 1.99)
+      return Eigen::Vector2d(0,0);
     return Eigen::Vector2d(sin(m * x) * sin(n * y), 0);
   }
 
   Eigen::MatrixXd grad(const Eigen::Vector2d &X) const {
     double x = X(0);
     double y = X(1);
+    if (abs(x) > 1.99 || abs(y) > 1.99)
+      return Eigen::MatrixXd::Constant(2,2,0);
     Eigen::MatrixXd M(2, 2);
     M << m * cos(m * x) * sin(n * y), 0, n * cos(n * y) * sin(m * x), 0;
     return M;
@@ -97,12 +100,16 @@ public:
   double div(const Eigen::Vector2d &X) const {
     double x = X(0);
     double y = X(1);
+    if (abs(x) > 1.99 || abs(y) > 1.99)
+      return 0;
     return m * cos(m * x) * sin(n * y);
   }
 
   Eigen::MatrixXd dgrad1(const Eigen::Vector2d &X) const {
     double x = X(0);
     double y = X(1);
+    if (abs(x) > 1.99 || abs(y) > 1.99)
+      return Eigen::MatrixXd::Constant(2,2,0);
     Eigen::MatrixXd M(2, 2);
     M << -m * m * sin(m * x) * sin(n * y), m * n * cos(m * x) * cos(n * y),
         m * n * cos(m * x) * cos(n * y), -n * n * sin(m * x) * sin(n * y);
@@ -125,6 +132,8 @@ public:
   Eigen::Vector2d operator()(const Eigen::Vector2d &X) const {
     double x = X(0);
     double y = X(1);
+    if (abs(x) > 1.99 || abs(y) > 1.99)
+      return Eigen::MatrixXd::Constant(2,2,0);
     Eigen::Vector2d out;
     return Eigen::Vector2d(0, sin(m * x) * sin(n * y));
   }
@@ -132,6 +141,8 @@ public:
   Eigen::MatrixXd grad(const Eigen::Vector2d &X) const {
     double x = X(0);
     double y = X(1);
+    if (abs(x) > 1.99 || abs(y) > 1.99)
+      return Eigen::MatrixXd::Constant(2,2,0);
     Eigen::MatrixXd M(2, 2);
     M << 0, m * cos(m * x) * sin(n * y), 0, n * cos(n * y) * sin(m * x);
     return M;
@@ -140,6 +151,8 @@ public:
   double div(const Eigen::Vector2d &X) const {
     double x = X(0);
     double y = X(1);
+    if (abs(x) > 1.99 || abs(y) > 1.99)
+      return 0;
     return n * sin(m * x) * cos(n * y);
   }
 
@@ -153,6 +166,8 @@ public:
   Eigen::MatrixXd dgrad2(const Eigen::Vector2d &X) const {
     double x = X(0);
     double y = X(1);
+    if (abs(x) > 1.99 || abs(y) > 1.99)
+      return Eigen::MatrixXd::Constant(2,2,0);
     Eigen::MatrixXd M(2, 2);
     M << -m * m * sin(m * x) * sin(n * y), m * n * cos(m * x) * cos(n * y),
         m * n * cos(m * x) * cos(n * y), -n * n * sin(m * x) * sin(n * y);
