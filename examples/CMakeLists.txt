@@ -40,6 +40,7 @@ add_executable(circ_cond circle_conductor.cpp)
 add_executable(single_square single_square.cpp)
 add_executable(single_kite single_kite.cpp)
 add_executable(sq_kite_gip square_kite_gipsy.cpp)
+add_executable(sq_kite_gip_sin square_kite_gipsy_sin.cpp)
 
 target_link_libraries(dinteg parametrizations adj_double_layer hypersingular single_layer double_layer quadrature)
 target_link_libraries(force parametrizations adj_double_layer hypersingular single_layer double_layer quadrature)
@@ -71,3 +72,4 @@ target_link_libraries(circ_cond parametrizations adj_double_layer hypersingular 
 target_link_libraries(single_square parametrizations adj_double_layer hypersingular single_layer double_layer quadrature)
 target_link_libraries(single_kite parametrizations adj_double_layer hypersingular single_layer double_layer quadrature)
 target_link_libraries(sq_kite_gip parametrizations adj_double_layer hypersingular single_layer double_layer quadrature)
+target_link_libraries(sq_kite_gip_sin parametrizations adj_double_layer hypersingular single_layer double_layer quadrature)
