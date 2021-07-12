@@ -1,2 +1,0 @@
-/usr/bin/ar qc libquadrature.a  CMakeFiles/quadrature.dir/genLaguerreRule.cpp.o CMakeFiles/quadrature.dir/logweight_quadrature.cpp.o
-/usr/bin/ranlib libquadrature.a

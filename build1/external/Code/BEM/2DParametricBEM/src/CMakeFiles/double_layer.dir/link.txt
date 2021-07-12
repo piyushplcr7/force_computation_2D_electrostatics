@@ -1,2 +1,0 @@
-/usr/bin/ar qc libdouble_layer.a  CMakeFiles/double_layer.dir/double_layer.cpp.o CMakeFiles/double_layer.dir/parametrized_mesh.cpp.o
-/usr/bin/ranlib libdouble_layer.a

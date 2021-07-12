@@ -1,1 +1,0 @@
-/usr/lib64/ccache/c++  -std=c++11  -rdynamic CMakeFiles/quadapprox.dir/quad_approx.cpp.o  -o quadapprox  ../external/Code/BEM/2DParametricBEM/src/libsingle_layer.a ../external/Code/BEM/2DParametricBEM/src/Parametrizations/libparametrizations.a ../external/Code/BEM/2DParametricBEM/src/Quadrature/libquadrature.a 
