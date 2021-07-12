@@ -32,7 +32,7 @@ public:
   double operator()(const Eigen::Vector2d &X) const {
     double x = X(0);
     double y = X(1);
-    if (inner(x, y))
+    if (!inner(x, y))
       return 0;
     else
       return 1;
@@ -271,7 +271,7 @@ int main() {
       << std::setw(25) << "BEM" << std::setw(25) << "0.5*(gradu)^2 ex."
       << std::setw(25) << "Boundary Formula 1" << std::setw(25)
       << "Boundary Formula 2" << std::endl;
-  for (unsigned numpanels = 2; numpanels < 1001; numpanels += 2) {
+  for (unsigned numpanels = 1; numpanels < 2100; numpanels *= 2) {
     unsigned temp = numpanels;
     // Getting panels for the edges of inner sqyare
     parametricbem2d::PanelVector panels_ir(ir.split(temp)); // right
@@ -279,10 +279,10 @@ int main() {
     parametricbem2d::PanelVector panels_il(il.split(temp)); // left
     parametricbem2d::PanelVector panels_ib(ib.split(temp)); // bottom
     // Panels for the edges of outer square
-    parametricbem2d::PanelVector panels_or(Or.split(temp));
-    parametricbem2d::PanelVector panels_ot(ot.split(temp));
-    parametricbem2d::PanelVector panels_ol(ol.split(temp));
-    parametricbem2d::PanelVector panels_ob(ob.split(temp));
+    parametricbem2d::PanelVector panels_or(Or.split(6*temp));
+    parametricbem2d::PanelVector panels_ot(ot.split(6*temp));
+    parametricbem2d::PanelVector panels_ol(ol.split(6*temp));
+    parametricbem2d::PanelVector panels_ob(ob.split(6*temp));
 
     // Creating the ParametricMesh object
     parametricbem2d::PanelVector panels;

@@ -73,7 +73,8 @@ public:
     Eigen::MatrixXd M(2, 2);
     if (abs(x) > 2.99 || abs(y) > 2.99)
       M << 0, 0, 0, 0;
-    M << 0,1,-1,0;
+    else
+      M << 0,1,-1,0;
     return M;
   }
 
@@ -346,7 +347,7 @@ int main() {
     cgpanels.insert(cgpanels.end(), temp.begin(), temp.end());
     temp = it.split(1);
     cgpanels.insert(cgpanels.end(), temp.begin(), temp.end());
-    Eigen::Vector2d CG = cg(cgpanels);
+    Eigen::Vector2d CG = Eigen::Vector2d(0.5,0);//cg(cgpanels);
     std::cout << "Found CG: " << CG.transpose() << std::endl;
     NU_ROT nu(CG); // Rotational velocity field about the center of mass
     std::cout << "nu cg check : " << nu(CG).transpose() << std::endl;
