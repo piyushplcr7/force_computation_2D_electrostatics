@@ -222,10 +222,10 @@ int main() {
     parametricbem2d::PanelVector panels_il(il.split(temp));
     parametricbem2d::PanelVector panels_ib(ib.split(temp));
     // Panels for the edges of outer square
-    parametricbem2d::PanelVector panels_or(Or.split(temp));
-    parametricbem2d::PanelVector panels_ot(ot.split(temp));
-    parametricbem2d::PanelVector panels_ol(ol.split(temp));
-    parametricbem2d::PanelVector panels_ob(ob.split(temp));
+    parametricbem2d::PanelVector panels_or(Or.split(6*temp));
+    parametricbem2d::PanelVector panels_ot(ot.split(6*temp));
+    parametricbem2d::PanelVector panels_ol(ol.split(6*temp));
+    parametricbem2d::PanelVector panels_ob(ob.split(6*temp));
 
     // Creating the ParametricMesh object
     parametricbem2d::PanelVector panels;

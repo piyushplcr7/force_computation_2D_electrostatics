@@ -133,7 +133,7 @@ public:
     double x = X(0);
     double y = X(1);
     if (abs(x) > 1.99 || abs(y) > 1.99)
-      return Eigen::MatrixXd::Constant(2,2,0);
+      return Eigen::Vector2d(0,0);
     Eigen::Vector2d out;
     return Eigen::Vector2d(0, sin(m * x) * sin(n * y));
   }

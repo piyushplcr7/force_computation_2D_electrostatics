@@ -102,7 +102,8 @@ public:
     Eigen::MatrixXd M(2, 2);
     if (abs(x) > 1.99 || abs(y) > 1.99)
       M << 0, 0, 0, 0;
-    M << 0,1,-1,0;
+    else
+      M << 0,1,-1,0;
     return M;
   }
 
